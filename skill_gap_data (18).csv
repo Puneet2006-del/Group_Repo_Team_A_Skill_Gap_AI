@@ -1,0 +1,26 @@
+Skill,Status,Resume Score (%),Job Requirement Score (%)
+Adaptability,Missing,20,90
+Communication,Missing,20,90
+Critical Thinking,Missing,20,90
+Css,Missing,20,90
+Data Analysis,Matched,85,90
+Data Visualization,Matched,85,90
+Database Querying,Partial,55,80
+Deep Learning,Missing,20,90
+Git,Missing,20,90
+Html,Missing,20,90
+Java,Missing,20,90
+Leadership,Missing,20,90
+Machine Learning,Missing,20,90
+Matplotlib,Matched,85,90
+Microsoft Excel,Missing,20,90
+Nlp,Missing,20,90
+Num Py,Missing,20,90
+Pandas,Missing,20,90
+Power Bi,Partial,55,80
+Problem Solving,Missing,20,90
+Python,Matched,85,90
+Sql,Matched,85,90
+Streamlit,Missing,20,90
+Teamwork,Missing,20,90
+Time Management,Matched,85,90
