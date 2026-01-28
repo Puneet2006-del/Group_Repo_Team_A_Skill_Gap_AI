@@ -625,71 +625,104 @@ with col2:
         key="jd"
     )
 
-if resume_file and jd_file:
+# ────────────────────────────────────────────────────────────────
+# Milestone 1: Input Validation & Error Handling
+# ────────────────────────────────────────────────────────────────
+
+if st.button("Analyze"):
+
+    # 1️⃣ No file uploaded
+    if not resume_file or not jd_file:
+        st.error("❌ Please upload both Resume and Job Description.")
+        st.stop()
+
+    # 2️⃣ Safe text extraction function
+    def safe_extract(file):
+        text = ""
+        status = "✅ Text extracted successfully!"
+        try:
+            if file.type == "application/pdf":
+                import pdfplumber
+                with pdfplumber.open(file) as pdf:
+                    for page in pdf.pages:
+                        page_text = page.extract_text()
+                        if page_text:
+                            text += page_text + "\n"
+                if not text.strip():
+                    status = "⚠️ PDF has no readable text. Might be scanned."
+
+            elif file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                import docx
+                doc = docx.Document(file)
+                for para in doc.paragraphs:
+                    if para.text:
+                        text += para.text + "\n"
+                if not text.strip():
+                    status = "⚠️ Word file seems empty."
+
+            elif file.type == "text/plain":
+                text = str(file.read(), "utf-8")
+                if not text.strip():
+                    status = "⚠️ Text file is empty."
+
+            else:
+                status = "⚠️ Unsupported file type."
+
+            # Optional: clean text if you have a clean_text function
+            if text.strip():
+                text = clean_text(text)
+
+        except Exception as e:
+            text = ""
+            status = f"❌ Failed to read file: {str(e)}"
+
+        return text, status
+
+    # Extract text safely
+    resume_text, resume_status = safe_extract(resume_file)
+    jd_text, jd_status = safe_extract(jd_file)
+
+    # 3️⃣ Check if extraction failed
+    if not resume_text.strip() or not jd_text.strip():
+        st.error("❌ Unable to extract readable text from the uploaded file(s). Please upload valid documents.")
+        st.stop()
+
+    # 4️⃣ Not enough meaningful content
+    if len(resume_text) < 100 or len(jd_text) < 100:
+        st.warning("⚠️ Uploaded document doesn’t seem to contain enough content for analysis. Results may be limited.")
+
+    # Show status
+    st.subheader("File Extraction Status")
+    st.write("**Resume:**", resume_status)
+    st.write("**Job Description:**", jd_status)
+
+    st.success("✅ Files validated successfully. Preview and analysis ready.")
+
+    # ────────────────────────────────────────────────────────────────
     # Milestone 1: Data Ingestion & Parsing
-    st.markdown("## Milestone 1: Data Ingestion & Parsing")
-
     # ────────────────────────────────────────────────────────────────
-    # SAFE FILE READING WITH ERROR HANDLING
-    # ────────────────────────────────────────────────────────────────
-    resume_text = ""
-    jd_text = ""
 
-    # Read Resume
-    try:
-        resume_text = extract_text(resume_file)
-        resume_text = clean_text(resume_text)
-    except Exception as e:
-        st.error(f"Failed to read resume file: {str(e)}")
-        resume_text = ""
+    col1, col2 = st.columns(2)
 
-    # Read Job Description
-    try:
-        jd_text = extract_text(jd_file)
-        jd_text = clean_text(jd_text)
-    except Exception as e:
-        st.error(f"Failed to read job description file: {str(e)}")
-        jd_text = ""
+    with col1:
+        st.markdown("**Resume Preview**")
+        st.text_area(
+            "",
+            resume_text,
+            height=400,
+            label_visibility="collapsed",
+            key="resume_preview"
+        )
 
-    # User-friendly feedback if reading failed
-    if not resume_text and not jd_text:
-        st.warning("⚠️ Could not read content from either file. Please check file format and try again.")
-    elif not resume_text:
-        st.warning("⚠️ Could not read the resume file. Preview and analysis will be limited.")
-    elif not jd_text:
-        st.warning("⚠️ Could not read the job description file. Gap analysis may be incomplete.")
-
-    # ────────────────────────────────────────────────────────────────
-    # Show previews only if we have at least some content
-    # ────────────────────────────────────────────────────────────────
-    if resume_text or jd_text:
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown("**Resume Preview**")
-            if resume_text:
-                st.text_area(
-                    "",
-                    resume_text,
-                    height=400,
-                    label_visibility="collapsed",
-                    key="resume_preview"
-                )
-            else:
-                st.info("Resume content could not be loaded.")
-
-        with col2:
-            st.markdown("**Job Description Preview**")
-            if jd_text:
-                st.text_area(
-                    "",
-                    jd_text,
-                    height=400,
-                    label_visibility="collapsed",
-                    key="jd_preview"
-                )
-            else:
-                st.info("Job Description content could not be loaded.")
+    with col2:
+        st.markdown("**Job Description Preview**")
+        st.text_area(
+            "",
+            jd_text,
+            height=400,
+            label_visibility="collapsed",
+            key="jd_preview"
+        )
 
     # Milestone 2: Skill Extraction
     st.markdown("## Milestone 2: Skill Extraction using NLP")
